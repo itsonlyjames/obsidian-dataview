@@ -43,17 +43,30 @@ export class DataviewCalendarRenderer extends DataviewRefreshableRenderer {
         }
         let dateMap = new Map<string, CalendarFile[]>();
         for (let data of maybeResult.value.data) {
-            const dot = {
-                color: "default",
-                className: "note",
-                isFilled: true,
-                link: data.link,
+            const processData = (item: any) => {
+                const dot = {
+                    color: "default",
+                    className: "note",
+                    isFilled: true,
+                    link: item.link,
+                };
+                const formattedDate = item.date.toFormat("yyyyLLdd");
+
+                if (!dateMap.has(formattedDate)) {
+                    dateMap.set(formattedDate, [dot]);
+                } else {
+                    dateMap.get(formattedDate)?.push(dot);
+                }
             };
-            const d = data.date.toFormat("yyyyLLdd");
-            if (!dateMap.has(d)) {
-                dateMap.set(d, [dot]);
+
+            //@ts-ignore
+            if (Array.isArray(data.data) && data.data.length > 1) {
+                //@ts-ignore
+                for (let obj of data.data) {
+                    processData(obj);
+                }
             } else {
-                dateMap.get(d)?.push(dot);
+                processData(data);
             }
         }
 

@@ -489,13 +489,21 @@ export async function executeCalendar(
         link: Fields.indexVariable("file.link"),
     };
 
+    //todo fix array type
+    //@ts-ignore
     return executeCoreExtract(fileset.value, rootContext, query.operations, fields).map(core => {
-        let data = core.data.map(p =>
-            iden({
+        let data = core.data.map(p => {
+            // Data contains a list of dates
+            if (Array.isArray(p.data["target"]) && (p.data["target"] as DateTime[]).length > 1) {
+                const validDates = p.data["target"].filter(item => item instanceof DateTime);
+                return { core, data: validDates.map(item => iden({ date: item, link: p.data["link"] as Link })) };
+            }
+
+            return iden({
                 date: p.data["target"] as DateTime,
                 link: p.data["link"] as Link,
-            })
-        );
+            });
+        });
 
         return { core, data };
     });
